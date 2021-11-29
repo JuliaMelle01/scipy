@@ -1,6 +1,4 @@
 # cython: language_level=3
-from functools import wraps
-
 cimport cython
 cimport numpy as cnp
 import numpy as np
@@ -27,22 +25,6 @@ ctypedef fused np_complex_numeric_t:
 __all__ = ['bandwidth', 'issymmetric', 'ishermitian']
 
 
-def ld_arg(func):
-    # On NumPy compiled with MSVC, float64 is longdouble; We might not be
-    # compiling with MSVC, so make that explicit.
-    if np.dtype(np.double) != np.dtype(np.longdouble):
-        return func
-
-    @wraps(func)
-    def wrapper(a, *args, **kwargs):
-        if a.dtype == np.longdouble:
-            a = a.view(np.float64)
-        return func(a, *args, **kwargs)
-
-    return wrapper
-
-
-@ld_arg
 @cython.embedsignature(True)
 def bandwidth(a):
     """Return the lower and upper bandwidth of a 2D numeric array.
@@ -188,7 +170,6 @@ cdef inline (int, int) band_check_internal_noncontig(np_numeric_t[:, :]A) nogil:
     return lower_band, upper_band
 
 
-@ld_arg
 @cython.embedsignature(True)
 def issymmetric(a, atol=None, rtol=None):
     """Check if a square 2D array is symmetric.
@@ -318,7 +299,6 @@ cdef inline bint is_sym_her_real_noncontig_internal(np_numeric_t[:, :]A) nogil:
     return True
 
 
-@ld_arg
 @cython.embedsignature(True)
 def ishermitian(a, atol=None, rtol=None):
     """Check if a square 2D array is Hermitian.
